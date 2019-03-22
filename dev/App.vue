@@ -1,375 +1,143 @@
 <template>
   <div>
-    {{ selectedIds }}
-    <button @click="rows = [];">empty row</button>
-    <button @click="resetTable">reset Table</button>
-    <button @click="hideColumn">hide column</button>
-    <button @click="setFilter">SetFilter</button>
-    <input type="text" v-model="searchTerm">
-    <vue-good-table
-      ref="my-table"
-      @on-column-filter="onColumnFilter"
-      @on-select-all="onSelectAll"
-      @on-sort-change="onSortChange"
-      @on-page-change="onPageChange"
-      @on-per-page-change="onPerPageChange"
-      @on-search="onSearch"
-      @on-selected-rows-change="onSelectChanged"
-      :columns="columns"
-      :rows="rows"
-      theme="black-rhino"
-      :pagination-options="{
-        mode: 'pages',
-        enabled: true,
-        perPage: 5,
-        perPageDropdown: [50, 100, 200, 300, 500, 1000],
-      }"
-      :select-options="{
-        enabled: true,
-        selectOnCheckboxOnly: true,
-      }"
-      styleClass="vgt-table bordered"
-      :sort-options="{
-        enabled: true,
-        initialSortBy: [{field: 'name', type: 'asc'}, {field: 'age', type: 'desc'}],
-      }"
-      :search-options="{
-        enabled: true,
-        skipDiacritics: true,
-      }">
-    </vue-good-table>
-    <h3>Remote Table</h3>
-    <remote-table/>
-    <h3>Grouped Table</h3>
-    <grouped-table></grouped-table>
+    <div class="current-date">{{ getTextDate }}</div>
+      <vue-good-table
+      :columns="getTableCols"
+      :rows="getTableRows">
+      <div slot="table-actions">
+        <button @click="prevMonth" class="back">Back</button>
+        <button @click="nextMonth" class="forward">Forward</button>
+      </div>
+  </vue-good-table>
   </div>
 </template>
 
 <script>
-import GroupedTable from './grouped-table';
-import RemoteTable from './remote-table';
 
 export default {
-  name: 'test',
-  data() {
+  name: 'multi-calendar',
+  data(){
+    const date = new Date();
     return {
-      selectedIds: [],
-      rowStyleClass: 'red',
-      searchTerm: '',
-      columns: [
-        {
-          label: 'Name',
-          field: 'name',
-          filterOptions: {
-            enabled: true,
-            placeholder: 'All',
-            filterDropdownItems: ['Chris', 'Dan', 'Susan'],
-            // filterValue: 'Chris',
-          },
-        },
-        {
-          label: 'Age',
-          field: 'age',
-          type: 'number',
-          filterOptions: {
-            enabled: true,
-            // filterValue: 20,
-          },
-        },
-        {
-          label: 'Created On',
-          field: 'createdAt',
-          type: 'date',
-          dateInputFormat: 'YYYY-MM-DD',
-          dateOutputFormat: 'LLL',
-        },
-        {
-          label: 'Percent',
-          field: 'score',
-          type: 'percentage',
-        },
-        {
-          label: 'func',
-          field: this.funcValue,
-          type: 'number',
-        },
-        {
-          label: 'Valid',
-          field: 'bool',
-          type: 'boolean',
-          filterOptions: {
-            enabled: true,
-            filterDropdownItems: [
-              true,
-              false,
-            ],
-          },
-        },
-      ],
-      rows: [
-        // { id:1, name:"John", age: 20, createdAt: '2018-02-18T00:00:43-05:00',score: 0.03343 },
-        {
-          id: 2,
-          name: 'Jane',
-          age: 24,
-          createdAt: '2011-10-31',
-          score: 0.03343,
-          bool: true,
-        },
-        {
-          id: 3,
-          name: 'Angel',
-          age: 16,
-          createdAt: '2011-10-30',
-          score: 0.03343,
-          bool: true,
-        },
-        {
-          id: 4,
-          name: 'Chris',
-          age: 55,
-          createdAt: '2011-10-11',
-          score: 0.03343,
-          bool: false,
-        },
-        {
-          id: 5,
-          name: 'Dan',
-          age: 40,
-          createdAt: null,
-          score: 0.03343,
-          bool: null,
-        },
-        {
-          id: 5,
-          name: '193.23',
-          age: 20,
-          createdAt: null,
-          score: 0.03343,
-          bool: null,
-        },
-        {
-          id: 5,
-          name: 'Dan',
-          age: 34,
-          createdAt: null,
-          score: 0.03343,
-          bool: null,
-        },
-        {
-          id: 6,
-          name: 'John',
-          age: 20,
-          createdAt: '2011-10-31',
-          score: 0.03343,
-          bool: true,
-        },
-        {
-          id: 7,
-          name: 'Ángel',
-          age: 20,
-          createdAt: '2013-09-21',
-          score: null,
-          bool: 'false',
-        },
-        {
-          id: 8,
-          name: 'Susan',
-          age: 16,
-          createdAt: '2013-10-31',
-          score: 0.03343,
-          bool: true,
-        },
-      ],
+      tableCols: [],
+      tableRows: [],
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+      currentMonth: date.getMonth(),
+      currentYear: date.getFullYear(),
+      listings: [{property:{id:"12345",property_name:"Villa"},photos:["/","/","/"],calendar_status:[{date:"03/04/2019",price:2400,minimum_nights:2,status:"half_booked",check_in_booking:12345},{date:"03/05/2019",price:2400,minimum_nights:2,status:"half_booked",booking:12345},{date:"03/06/2019",price:2400,minimum_nights:2,status:"half_booked",check_out_booking:12345},{date:"03/20/2019",price:2400,minimum_nights:2,status:"fully_booked",check_in_booking:12346},{date:"03/21/2019",price:2400,minimum_nights:2,status:"fully_booked",booking:12346},{date:"03/22/2019",price:2400,minimum_nights:2,status:"fully_booked",check_out_booking:12346},{date:"04/13/2019",price:2400,minimum_nights:2,status:"cancelled",check_in_booking:12347},{date:"04/14/2019",price:2400,minimum_nights:2,status:"cancelled",booking:12347},{date:"04/15/2019",price:2400,minimum_nights:2,status:"cancelled",booking:12347},{date:"04/16/2019",price:2400,minimum_nights:2,status:"cancelled",booking:12347},{date:"04/17/2019",price:2400,minimum_nights:2,status:"cancelled",check_out_booking:12347},{date:"03/06/2019",price:2400,minimum_nights:2,status:"payment_pending",check_in_booking:12345},{date:"03/07/2019",price:2400,minimum_nights:2,status:"payment_pending",booking:12345},{date:"03/08/2019",price:2400,minimum_nights:2,status:"payment_pending",check_out_booking:12345}]}],
+      // rows: [
+      //   { id:1, name:"John", age: 20, createdAt: '201-10-31:9: 35 am',score: 0.03343 },
+      //   { id:2, name:"Jane", age: 24, createdAt: '2011-10-31', score: 0.03343 },
+      //   { id:3, name:"Susan", age: 16, createdAt: '2011-10-30', score: 0.03343 },
+      //   { id:4, name:"Chris", age: 55, createdAt: '2011-10-11', score: 0.03343 },
+      //   { id:5, name:"Dan", age: 40, createdAt: '2011-10-21', score: 0.03343 },
+      //   { id:6, name:"John", age: 20, createdAt: '2011-10-31', score: 0.03343 },
+      // ],
     };
   },
   methods: {
-    funcValue(row) {
-      return row.age + 5;
-    },
-    tdClassFunc(row) {
-      if (row.age > 50) {
-        return 'red';
-      }
-      return 'green';
-    },
-    getRowStyle() {
-      return '';
-    },
-    hideColumn() {
-      this.$set(this.columns[0], 'hidden', true);
-    },
-    resetTable() {
-      this.$refs['my-table'].reset();
-    },
-    onSelectAll(params) {
-      console.log(params);
-      // this.unselectAll();
-      // if (params.selected) {
-      //   for (let i = 0; i < params.selectedRows.length; i++) {
-      //     // lets get the original index of the row
-      //     const originalIndex = params.selectedRows[i].originalIndex;
-      //     // now lets set that row's selected value to be true
-      //     this.$set(this.rows[originalIndex], 'selected', true);
-      //   }
-      // }
-    },
-    unselectAll() {
-      for (let i = 0; i < this.rows.length; i++) {
-        this.$set(this.rows[i], 'selected', false);
+    getCurrMonth() {
+      this.tableCols = [];      
+      const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+      const monthDays = new Date(this.currentYear, this.currentMonth +1, 0).getDate();
+      for (let x = 0; x < monthDays; x++) {
+        const createDate = new Date(this.currentYear, this.currentMonth, x+1);
+        this.tableCols[x] = {
+          label: `${days[createDate.getDay()]} ${x+1}`,
+          field: `${createDate.getTime()}`,
+          html: true
+        }
       }
     },
-    toggleSelectRow(params) {
-      console.log(params.row, params.pageIndex, params.selected);
-      // if (this.rows[row.originalIndex].selected) {
-      //   this.$set(this.rows[row.originalIndex], 'selected', false);
-      // } else {
-      //   this.$set(this.rows[row.originalIndex], 'selected', true);
-      // }
-    },
-    selectCell(params) {
-      console.log('select cell called');
-      console.log(params);
-    },
-    searchedRow(params) {
-      console.log(params);
-    },
-    setFilter() {
-      console.log('setting john');
-      // this.columns[0].filterOptions.filterValue = 'John';
-      console.log(this.columns);
-      // this.$set(this.columns[0].filterOptions, 'filterValue', 'John');
-      this.$set(this.columns[1], 'filterOptions', { enabled: true, filterValue: 20 });
-    },
-    autofilter(type) {
-      if (type === 'name') {
-        this.columns[0].filterOptions.filterValue = 'John';
+    prevMonth() {
+      if (this.currentMonth == 0) {
+        this.currentMonth = 11;
+        this.currentYear = this.currentYear - 1;
+      } else {
+        this.currentMonth = this.currentMonth - 1;
       }
-      if (type === 'age') {
-        this.columns[1].filterOptions.filterValue = '>30';
+      this.getCurrMonth();
+      this.getListings();
+    },
+    nextMonth() {
+      if (this.currentMonth == 11) {
+        this.currentMonth = 0;
+        this.currentYear = this.currentYear + 1;
+      } else {
+        this.currentMonth = this.currentMonth + 1;
       }
-      if (type === 'reset') {
-        this.columns[0].filterOptions.filterValue = '';
-        this.columns[1].filterOptions.filterValue = '';
-        // this.columns[1].filterOptions.filterValue = null;
+      this.getCurrMonth();
+      this.getListings();
+    },
+    getListings() {
+      this.tableRows = [];
+      for (let y = 0; y < this.listings.length; y++) {
+        const bookingDates = {
+            id: y
+        }
+        for (let z = 0; z < this.listings[y].calendar_status.length; z++) {
+          this.listings[y].calendar_status[z].date = new Date(this.listings[y].calendar_status[z].date).getTime();
+          const status = `${Object.keys(this.listings[y].calendar_status[z])[Object.keys(this.listings[y].calendar_status[z]).length -1]} ${this.listings[y].calendar_status[z].status}`;
+
+          bookingDates[this.listings[y].calendar_status[z].date] = bookingDates[this.listings[y].calendar_status[z].date] !== undefined ? `${bookingDates[this.listings[y].calendar_status[z].date]}<div class="${status}"></div>` : `<div class="${status}"></div>`;
+          
+          this.tableRows[y] = bookingDates;
+        }
       }
-    },
-
-    filterAge(data, filterString) {
-      if ((filterString === '>30') && (parseInt(data, 10) > 30)) {
-        return true;
-      }
-      if ((filterString === '<=30') && (parseInt(data, 10) <= 30)) {
-        return true;
-      }
-      return false;
-    },
-
-    onClick() {
-      console.log('clicked');
-      this.rowStyleClass = 'green';
-    },
-    addRow() {
-      this.rows.push({
-        name: `Chris ${Math.random()}`,
-        age: 20,
-      });
-    },
-    editRow() {
-      this.$set(this.rows[12], 'age', 300);
-    },
-    sortFn(x, y, col) {
-      if (x < y) {
-        return -1;
-      }
-      if (x > y) {
-        return 1;
-      }
-      return 0;
-    },
-    formatAge(value) {
-      return `lala${value}lala`;
-    },
-    addFilter() {
-      this.$set(this.columns[2], 'filterValue', 'Jane');
-      console.log(this.columns);
-    },
-
-    // events
-    // ===================================================
-    onPerPageChange(evt) {
-      // { currentPage: 1, currentPerPage: 10, total: 5 }
-      console.log('per-page-changed:');
-      console.log(evt);
-    },
-
-    onPageChange(evt) {
-      // { currentPage: 1, currentPerPage: 10, total: 5 }
-      console.log('page-changed:');
-      console.log(evt);
-    },
-
-    onColumnFilter(params) {
-      // { currentPage: 1, currentPerPage: 10, total: 5 }
-      console.log('on-column-filters:');
-      console.log(params);
-    },
-
-    onSearch(params) {
-      console.log('on-search:');
-      console.log(params);
-    },
-
-    onSortChange(params) {
-      console.log('on-sort-change:');
-      console.log(params);
-    },
-
-    onRowClick(params) {
-      console.log('on-row-click');
-      console.log(params);
-    },
-
-    onSelectChanged(params) {
-      console.log(params);
-      const selectedIds = params.selectedRows.reduce((acc, row) => {
-        acc.push(row.id);
-        return acc;
-      }, []);
-      console.log(params.selectedRows);
-      console.log(selectedIds);
-      this.selectedIds = selectedIds;
-    },
+    }
   },
-  mounted() {
-    // axios.get('https://jsonplaceholder.typicode.com/posts')
-    //   .then((response) => {
-    //     console.log(response);
-    //     this.rows = response.data;
-    //   });
+  computed: {
+    getTableCols() {
+      return this.tableCols;
+    },
+    getTextDate() {
+      return `${this.months[this.currentMonth]} ${this.currentYear}`;
+    },
+    getTableRows() {
+      return this.tableRows;
+    }
   },
-  components: {
-    'grouped-table': GroupedTable,
-    RemoteTable,
-  },
+  created() {
+    this.getCurrMonth();
+    this.getListings();
+  }
 };
 </script>
 
 <style lang="css">
-  .row-style{
-    background-color: red;
+  table.vgt-table tr td {
+    padding: 0;
   }
-  *{
-    font-family: 'Open Sans';
+
+  table.vgt-table tr th {
+    width: 60px;
+    height: 50px;
   }
-  .red{
-    background-color: red;
+
+  table.vgt-table tr td > span > div {
+    display: inline-block;
+    width: 100%;
+    height: 50px;
   }
-  .green{
-    background-color: green;
+
+  table.vgt-table tr td > span > div.check_out_booking, table.vgt-table tr td > span > div.check_in_booking {
+    width: 50%;
   }
-  /* .vgt-selection-info-row.info-custom{
-    background: red;
-  } */
+
+  .half_booked {
+    background-color: #56ffd9;
+  }
+
+  .fully_booked {
+    background-color: #3fcf8e;
+  }
+
+  .cancelled {
+    background-color: #ff7b7b;
+  }
+
+  .payment_pending {
+    background-color: #ffa27b;
+  }
 </style>
 
